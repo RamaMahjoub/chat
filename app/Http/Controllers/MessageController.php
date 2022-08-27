@@ -21,7 +21,7 @@ class MessageController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'body' => 'required',
-            'conversation_id' => 'required|numeric',
+            'conversation_id' => 'required',
         ]);
 
         if ($validator->fails()) {
