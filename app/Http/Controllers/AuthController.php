@@ -23,7 +23,7 @@ class AuthController extends Controller
     {
         $this->middleware('auth:sanctum')->only(
             'logout',
-            // 'resent_code',
+            'resent_code',
             'profile',
             'edit_profile'
         );
@@ -67,11 +67,11 @@ class AuthController extends Controller
 
         $token =  $user->createToken('API Token')->plainTextToken;
 
-        // $verification_code = Random::generate(6, '0-9'); //Generate verification code
-        // DB::table('verifications')->insert(['user_id' => $user->id, 'verification_code' => $verification_code]);
+        $verification_code = Random::generate(6, '0-9'); //Generate verification code
+        DB::table('verifications')->insert(['user_id' => $user->id, 'verification_code' => $verification_code]);
 
-        // $email = $request->email;
-        // Mail::to($email)->send(new Verify($verification_code));
+        $email = $request->email;
+        Mail::to($email)->send(new Verify($verification_code));
 
         return response()->json([
             'message' => 'Thanks for signing up!.',
@@ -82,53 +82,53 @@ class AuthController extends Controller
         ], Response::HTTP_OK);
     }
 
-    // public function verify(Request $request)
-    // {
-    //     $validator = Validator::make($request->all(), [
-    //         'verification_code' => 'required'
-    //     ]);
+    public function verify(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'verification_code' => 'required'
+        ]);
 
-    //     if ($validator->fails()) {
-    //         return response()->json([
-    //             'error' => $validator->errors()->toJson(),
-    //         ], Response::HTTP_BAD_REQUEST);
-    //     }
+        if ($validator->fails()) {
+            return response()->json([
+                'error' => $validator->errors()->toJson(),
+            ], Response::HTTP_BAD_REQUEST);
+        }
 
-    //     $check = DB::table('verifications')->where('verification_code', $request->verification_code)->first();
+        $check = DB::table('verifications')->where('verification_code', $request->verification_code)->first();
 
-    //     if (!is_null($check)) {
-    //         $user = User::findOrFail($check->user_id);
+        if (!is_null($check)) {
+            $user = User::findOrFail($check->user_id);
 
-    //         $user->update(['is_verified' => true]);
-    //         DB::table('verifications')->where('verification_code', $request->verification_code)->delete();
+            $user->update(['is_verified' => true]);
+            DB::table('verifications')->where('verification_code', $request->verification_code)->delete();
 
-    //         return response()->json([
-    //             'message' => 'verified successfully',
-    //             'data' => null,
-    //         ], Response::HTTP_OK);
-    //     }
+            return response()->json([
+                'message' => 'verified successfully',
+                'data' => null,
+            ], Response::HTTP_OK);
+        }
 
-    //     return response()->json([
-    //         'error' => 'wrong code',
-    //     ], Response::HTTP_BAD_REQUEST);
-    // }
+        return response()->json([
+            'error' => 'wrong code',
+        ], Response::HTTP_BAD_REQUEST);
+    }
 
-    // public function resent_code()
-    // {
-    //     $user = User::findOrFail(Auth::id());
-    //     $verification_code = Random::generate(6, '0-9'); //Generate verification code
+    public function resent_code()
+    {
+        $user = User::findOrFail(Auth::id());
+        $verification_code = Random::generate(6, '0-9'); //Generate verification code
 
-    //     DB::table('verifications')->where('user_id', $user->id)->delete();
-    //     DB::table('verifications')->insert(['user_id' => $user->id, 'verification_code' => $verification_code]);
+        DB::table('verifications')->where('user_id', $user->id)->delete();
+        DB::table('verifications')->insert(['user_id' => $user->id, 'verification_code' => $verification_code]);
 
-    //     $email = $user->email;
-    //     Mail::to($email)->send(new Verify($verification_code));
+        $email = $user->email;
+        Mail::to($email)->send(new Verify($verification_code));
 
-    //     return response()->json([
-    //         'message' => 'the code resent successfully',
-    //         'data' => null,
-    //     ], Response::HTTP_OK);
-    // }
+        return response()->json([
+            'message' => 'the code resent successfully',
+            'data' => null,
+        ], Response::HTTP_OK);
+    }
 
     public function login(Request $request)
     {
@@ -193,6 +193,8 @@ class AuthController extends Controller
                 'error' => $validator->errors()->toJson(),
             ], Response::HTTP_BAD_REQUEST);
         }
+
+        // return response($request);
 
         $user = User::findOrFail(Auth::id());
 
